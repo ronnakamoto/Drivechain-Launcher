@@ -1,16 +1,16 @@
 /* Main container */
 .container {
   width: 100%;
-  height: calc(var(--window-height) - 24px);
+  min-height: calc(100vh - 120px);
   overflow-y: auto;
-  padding: 24px 40px;
+  padding: 40px 40px 100px; /* Further increased top padding for more even spacing */
   box-sizing: border-box;
   background-color: var(--bg-color);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px; /* Reduced gap for tighter layout */
 }
 
 .container::-webkit-scrollbar {
@@ -40,22 +40,27 @@
 
 .containerWithQuotes {
   width: 100%;
-  height: calc(var(--window-height) - 24px);
+  min-height: calc(100vh - 120px);
   overflow-y: auto;
-  padding: 24px 32px;
+  padding: 40px 32px 100px; /* Further increased top padding to match container */
   box-sizing: border-box;
   background-color: var(--bg-color);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  padding-bottom: 80px; /* Add padding for quote ribbon */
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Reduced gap for tighter layout */
 }
 
 /* Chain sections */
 .chainSection {
   width: 100%;
   max-width: var(--window-width);
-  margin: 0 auto 28px;
+  margin: 0 auto;
   box-sizing: border-box;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* Add margin to the last chain section
@@ -97,7 +102,7 @@
 .l2Chains {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px;
   margin: 0;
   padding: 0;
   width: 100%;
