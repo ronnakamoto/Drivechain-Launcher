@@ -1,0 +1,136 @@
+/* Enhanced Status Light Styles */
+.status-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px; /* Match the height of the action button */
+}
+
+.status-light {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.status-light.healthy {
+  background-color: #FFC300; /* Bitcoin gold */
+  box-shadow: 0 0 4px rgba(255, 195, 0, 0.6);
+}
+
+.dark .status-light.healthy {
+  background-color: #FFC300; /* Bitcoin gold */
+  box-shadow: 0 0 4px rgba(255, 195, 0, 0.8);
+}
+
+.status-light.warning {
+  background-color: #FF9500; /* Orange */
+  box-shadow: 0 0 4px rgba(255, 149, 0, 0.6);
+}
+
+.dark .status-light.warning {
+  background-color: #FF9500; /* Orange */
+  box-shadow: 0 0 4px rgba(255, 149, 0, 0.6);
+}
+
+.status-light.error {
+  background-color: #D62828; /* Bitcoin red */
+  box-shadow: 0 0 4px rgba(214, 40, 40, 0.6);
+}
+
+.dark .status-light.error {
+  background-color: #D62828; /* Bitcoin red */
+  box-shadow: 0 0 4px rgba(214, 40, 40, 0.6);
+}
+
+.status-light.offline {
+  background-color: #8E8E93;
+}
+
+.dark .status-light.offline {
+  background-color: #8E8E93;
+}
+
+/* Pulsing animation for status lights */
+.status-light.healthy::after,
+.status-light.warning::after,
+.status-light.error::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  opacity: 0;
+}
+
+.status-light.healthy::after {
+  box-shadow: 0 0 8px 2px rgba(255, 195, 0, 0.8);
+}
+
+.status-light.warning::after {
+  box-shadow: 0 0 8px 2px rgba(255, 149, 0, 0.8);
+}
+
+.status-light.error::after {
+  box-shadow: 0 0 8px 2px rgba(214, 40, 40, 0.8);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.status-text {
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.7;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* Block count badge styling */
+.block-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+}
+
+.dark .block-count {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+}
+
+.block-count svg {
+  opacity: 0.7;
+}
+
+/* Hover effect for block count */
+.block-count:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.dark .block-count:hover {
+  background: rgba(255, 255, 255, 0.15);
+}

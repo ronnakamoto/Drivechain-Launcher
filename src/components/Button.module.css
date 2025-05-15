@@ -27,15 +27,48 @@
 .running,
 .stop,
 .stopping {
-  composes: btn;
   width: 90px;
+  min-width: 65px;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  font-weight: 500;
+  font-size: 14px;
+  font-family: inherit;
+  text-align: center;
+  color: var(--text-color);
+  background: var(--card-bg);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .downloading,
 .extracting {
-  composes: btn;
   width: auto;
   min-width: 90px;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  font-weight: 500;
+  font-size: 14px;
+  font-family: inherit;
+  text-align: center;
+  color: var(--text-color);
+  background: var(--card-bg);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn:disabled {
@@ -99,7 +132,7 @@
 }
 
 .quickStartBtn {
-  composes: btn;
+  composes: btn from global;
   height: 24px;
   padding: 0 24px !important;
   min-width: 100px;
@@ -135,6 +168,91 @@
   background-color: var(--download-btn-hover) !important;
 }
 
+.primary {
+  background: linear-gradient(to right, #007AFF, #5856D6);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.2);
+}
+
+.primary:hover {
+  box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);
+}
+
+:global(.dark) .primary {
+  background: linear-gradient(to right, #0A84FF, #5E5CE6);
+  box-shadow: 0 2px 6px rgba(10, 132, 255, 0.2);
+}
+
+:global(.dark) .primary:hover {
+  box-shadow: 0 4px 10px rgba(10, 132, 255, 0.3);
+}
+
+.secondary {
+  background-color: rgba(142, 142, 147, 0.12);
+  color: #000;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.secondary:hover {
+  background-color: rgba(142, 142, 147, 0.18);
+}
+
+:global(.dark) .secondary {
+  background-color: rgba(142, 142, 147, 0.18);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:global(.dark) .secondary:hover {
+  background-color: rgba(142, 142, 147, 0.24);
+}
+
+.button {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+  letter-spacing: -0.3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.button:hover {
+  background-color: var(--button-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.button:hover::after {
+  opacity: 1;
+}
+
 .iconButton {
   background: none;
   border: none;
@@ -156,7 +274,16 @@
 }
 
 :global(.dark) .iconButton:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--icon-hover-bg);
+  transform: translateY(-1px);
+}
+
+.iconButton:hover svg {
+  transform: scale(1.1);
+}
+
+.iconButton:active {
+  transform: translateY(0);
 }
 
 .shimmer {

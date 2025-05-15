@@ -84,10 +84,12 @@ function createWindow() {
     // Create main window completely hidden
     const options = {
       width: 900,
-      height: 400,
+      height: 600,
       show: false,
       frame: true,
-      resizable: false,
+      resizable: true,
+      minHeight: 500,
+      minWidth: 800,
       autoHideMenuBar: true,
       webPreferences: {
         contextIsolation: true,

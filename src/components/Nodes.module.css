@@ -3,23 +3,59 @@
   width: 100%;
   height: calc(var(--window-height) - 24px);
   overflow-y: auto;
-  padding-left: 10px;
-  padding-top: 18px;
-  padding-bottom: 5px;
+  padding: 24px 40px;
   box-sizing: border-box;
+  background-color: var(--bg-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+:global(.dark) .container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global(.dark) .container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .containerWithQuotes {
-  composes: container;
-  padding-bottom: 60px; /* Add padding for quote ribbon */
+  width: 100%;
+  height: calc(var(--window-height) - 24px);
+  overflow-y: auto;
+  padding: 24px 32px;
+  box-sizing: border-box;
+  background-color: var(--bg-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding-bottom: 80px; /* Add padding for quote ribbon */
 }
 
 /* Chain sections */
 .chainSection {
   width: 100%;
   max-width: var(--window-width);
-  margin: 0 auto var(--base-spacing);
+  margin: 0 auto 28px;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* Add margin to the last chain section
@@ -37,28 +73,59 @@
 }
 
 .l1ChainHeading {
-  composes: chainHeading;
+  font-size: calc(var(--base-font-size) * 1.1);
+  font-weight: bold;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: var(--base-spacing) 0 0 0;
 }
 
 .l2ChainHeading {
-  composes: chainHeading;
+  font-size: calc(var(--base-font-size) * 1.1);
+  font-weight: bold;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: calc(var(--base-spacing) * 0.25) 0;
 }
 
 /* Chain lists */
 .l1Chains,
 .l2Chains {
-  display: flex;
-  flex-direction: column;
-  gap: var(--base-spacing);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
   margin: 0;
   padding: 0;
   width: 100%;
+  position: relative;
+}
+
+@media (min-width: 1200px) {
+  .l2Chains {
+    grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
+  }
 }
 
 .l1Chains {
-  margin-bottom: var(--base-spacing);
+  margin-bottom: 12px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+/* Removed separation line */
+.l1Chains::before {
+  content: none;
+}
+
+/* Removed separation line */
+.l2Chains::before {
+  content: none;
 }
 
 .l2Chains > div {
@@ -75,21 +142,31 @@
   height: calc(var(--window-height) - 24px);
   background-color: var(--bg-color);
   color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 .loadingContent {
   text-align: center;
-  padding: var(--base-spacing);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .loadingSpinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid var(--card-bg);
-  border-top: 3px solid var(--download-btn);
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top: 3px solid #007AFF;
   border-radius: 50%;
-  margin: var(--base-spacing) auto;
+  margin: 8px auto;
   animation: spin 1s linear infinite;
+}
+
+:global(.dark) .loadingSpinner {
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #0A84FF;
 }
 
 @keyframes spin {

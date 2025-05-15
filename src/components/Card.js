@@ -8,7 +8,8 @@ import SettingsIcon from './SettingsIcon';
 import GitHubIcon from './GitHubIcon';
 import TrashIcon from './TrashIcon';
 import Tooltip from './Tooltip';
-import './StatusLight.css';
+import './EnhancedStatusLight.css';
+import './EnhancedButtons.css';
 import styles from './Card.module.css';
 import buttonStyles from './Button.module.css';
 
@@ -118,212 +119,155 @@ const Card = ({
   }, [chain.id, chain.status, blockCount, startTime]);
 
   const checkDependencies = async () => {
-    // For enforcer, check Bitcoin's IBD status - commented out as enforcer no longer depends on bitcoin
-    /*
-    if (chain.id === 'enforcer' && runningNodes.includes('bitcoin')) {
-      try {
-        const info = await window.electronAPI.getBitcoinInfo();
-        if (info.initialblockdownload) {
-          setTooltipText('Wait for Bitcoin IBD to complete before starting Enforcer');
-          return false;
+    try {
+      // Get chain dependencies
+      const dependencies = chain.dependencies || [];
+      
+      // Check if all dependencies are running
+      const missingDeps = [];
+      for (const depId of dependencies) {
+        if (!runningNodes.includes(depId)) {
+          const depChain = window.cardData.find(c => c.id === depId);
+          if (depChain) {
+            missingDeps.push(depChain.display_name);
+          } else {
+            missingDeps.push(depId);
+          }
         }
-      } catch (error) {
-        console.error('Failed to check Bitcoin IBD status:', error);
       }
+      
+      return missingDeps;
+    } catch (error) {
+      console.error('Error checking dependencies:', error);
+      return [];
     }
-    */
-    
-    // Check other dependencies
-    if (!chain.dependencies || chain.dependencies.length === 0) return true;
-    
-    const missing = chain.dependencies.filter(dep => !runningNodes.includes(dep));
-    if (missing.length > 0) {
-      const missingNames = missing.map(id => {
-        const depName = id.split('-').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-        return depName;
-      });
-      setTooltipText(`Required dependencies not running:\n${missingNames.join('\n')}`);
-      return false;
-    }
-    
-    return true;
   };
 
   const checkReverseDependencies = () => {
-    const dependentChains = getRunningDependents();
-    if (dependentChains.length > 0) {
-      const dependentNames = dependentChains.map(id => {
-        const depName = id.split('-').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-        return depName;
+    try {
+      // Find chains that depend on this chain
+      const reverseDeps = [];
+      window.cardData.forEach(c => {
+        if (c.dependencies && c.dependencies.includes(chain.id)) {
+          reverseDeps.push(c.id);
+        }
       });
-      setTooltipText(`Cannot stop: Following chains depend on this:\n${dependentNames.join('\n')}`);
-      return false;
+      return reverseDeps;
+    } catch (error) {
+      console.error('Error checking reverse dependencies:', error);
+      return [];
     }
-    return true;
   };
 
   const getRunningDependents = () => {
-    return runningNodes.filter(nodeId => {
-      const chainData = window.cardData.find(c => c.id === nodeId);
-      return chainData?.dependencies?.includes(chain.id);
-    });
+    const reverseDeps = checkReverseDependencies();
+    return reverseDeps.filter(id => runningNodes.includes(id));
   };
 
   const handleAction = async (event) => {
+    // Prevent rapid clicking
     const now = Date.now();
-    if (now - lastActionTime < 2000) {
-      console.log('Action blocked: cooldown period');
+    if (now - lastActionTime < 1000) {
       return;
     }
     setLastActionTime(now);
 
-    if (chain.status === 'downloaded' || chain.status === 'stopped') {
-      const depsOk = await checkDependencies();
-      if (!depsOk) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setTooltipPosition({
-          x: rect.right,
-          y: rect.top + rect.height / 2
-        });
-        setTooltipVisible(true);
-        return;
-      }
-    }
-
-    switch (chain.status) {
-      case 'not_downloaded':
-        try {
-          await onDownload(chain.id);
-        } catch (error) {
-          console.error('Download failed:', error);
-          onUpdateChain(chain.id, { status: 'not_downloaded', progress: 0 });
-        }
-        break;
-      case 'downloaded':
-      case 'stopped':
-        try {
-          await onStart(chain.id);
-        } catch (error) {
-          console.error('Start failed:', error);
-        }
-        break;
-      case 'running':
-      case 'starting':
-      case 'ready':
-        try {
-          if (!checkReverseDependencies()) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            setTooltipPosition({
-              x: rect.right,
-              y: rect.top + rect.height / 2
-            });
-            setTooltipVisible(true);
-            return;
-          }
+    try {
+      if (chain.status === 'not_downloaded') {
+        onDownload(chain.id);
+      } else if (chain.status === 'downloaded' || chain.status === 'stopped') {
+        // Check dependencies before starting
+        const missingDeps = await checkDependencies();
+        if (missingDeps.length > 0) {
+          const depNames = missingDeps.join(', ');
+          setTooltipText(`Missing dependencies: ${depNames}`);
           
-          setProcessHealth('offline');
-          onUpdateChain(chain.id, { status: 'stopping' });
-
-          // If this is bitwindow, stop all three chains
-          if (chain.id === 'bitwindow') {
-            const chainsToStop = ['bitwindow', 'bitcoin', 'enforcer'];
-            for (const chainId of chainsToStop) {
-              onUpdateChain(chainId, { status: 'stopping' });
-              await onStop(chainId);
-            }
-          } else {
-            await onStop(chain.id);
-          }
-        } catch (error) {
-          console.error('Stop failed:', error);
-          onUpdateChain(chain.id, { status: 'running' });
+          const rect = buttonRef.current.getBoundingClientRect();
+          setTooltipPosition({
+            x: rect.left + rect.width / 2,
+            y: rect.top - 10
+          });
+          
+          setTooltipVisible(true);
+          setTimeout(() => setTooltipVisible(false), 3000);
+          return;
         }
-        break;
-    }
-  };
-
-  const handleForceStop = async () => {
-    try {
-      onUpdateChain(chain.id, { status: 'stopping' });
-      await onStop(chain.id);
+        
+        onStart(chain.id);
+      } else if (chain.status === 'running' || chain.status === 'ready') {
+        // Check if any other chains depend on this one
+        const runningDependents = getRunningDependents();
+        if (runningDependents.length > 0) {
+          setShowForceStop(true);
+          return;
+        }
+        
+        onStop(chain.id);
+      }
     } catch (error) {
-      console.error('Force stop failed:', error);
-      onUpdateChain(chain.id, { status: 'running' });
-    } finally {
-      setShowForceStop(false);
+      console.error('Error handling action:', error);
     }
   };
 
-  const handleOpenSettings = useCallback(async () => {
+  const handleForceStop = () => {
     try {
-      const fullDataDir = await window.electronAPI.getFullDataDir(chain.id);
-      const walletDir = await window.electronAPI.getWalletDir(chain.id);
-      const binaryDir = await window.electronAPI.getBinaryDir(chain.id);
-      setFullChainData({
-        ...chain,
-        dataDir: fullDataDir,
-        walletDir: walletDir,
-        binaryDir: binaryDir,
-      });
+      // Force stop the chain even if dependents are running
+      onStop(chain.id, true);
+      setShowForceStop(false);
+    } catch (error) {
+      console.error('Error force stopping chain:', error);
+    }
+  };
+
+  const handleOpenSettings = () => {
+    try {
+      // Fetch full chain data if needed
+      if (!fullChainData || Object.keys(fullChainData).length === 0) {
+        const chainData = window.cardData.find(c => c.id === chain.id);
+        if (chainData) {
+          setFullChainData(chainData);
+        }
+      }
+      
       setShowSettings(true);
     } catch (error) {
-      console.error('Failed to fetch directories:', error);
+      console.error('Error opening settings:', error);
     }
-  }, [chain]);
+  };
 
-  const handleOpenDataDir = async chainId => {
+  const handleOpenDataDir = () => {
     try {
-      await window.electronAPI.openDataDir(chainId);
+      window.electronAPI.openDataDir(chain.id);
     } catch (error) {
-      console.error('Failed to open data directory:', error);
+      console.error('Error opening data directory:', error);
     }
   };
 
   const getButtonClass = () => {
-    switch (chain.status) {
-      case 'not_downloaded':
-        return 'download';
-      case 'downloading':
-      case 'extracting':
-        return 'downloading';
-      case 'downloaded':
-      case 'stopped':
-        return 'run';
-      case 'stopping':
-        return 'stopping';
-      case 'running':
-      case 'starting':
-      case 'ready':
-        return isHovered ? 'stop' : 'running';
-      default:
-        return '';
+    if (chain.status === 'running' || chain.status === 'ready' || chain.status === 'starting') {
+      return `${buttonStyles.btn} ${buttonStyles.stopBtn}`;
+    } else if (chain.status === 'not_downloaded') {
+      return `${buttonStyles.btn} ${buttonStyles.downloadBtn}`;
+    } else if (chain.status === 'downloading' || chain.status === 'extracting' || chain.status === 'stopping') {
+      return `${buttonStyles.btn} ${buttonStyles.disabledBtn}`;
+    } else {
+      return `${buttonStyles.btn} ${buttonStyles.startBtn}`;
     }
   };
 
   const getButtonText = () => {
-    switch (chain.status) {
-      case 'not_downloaded':
-        return 'Download';
-      case 'downloading':
-        return 'Downloading';
-      case 'extracting':
-        return 'Extracting';
-      case 'downloaded':
-      case 'stopped':
-        return 'Start';
-      case 'stopping':
-        return 'Stopping...';
-      case 'running':
-      case 'starting':
-      case 'ready':
-        if (!isHovered) return 'Running';
-        return 'Stop';
-      default:
-        return '';
+    if (chain.status === 'running' || chain.status === 'ready' || chain.status === 'starting') {
+      return 'Stop';
+    } else if (chain.status === 'not_downloaded') {
+      return 'Download';
+    } else if (chain.status === 'downloading') {
+      return 'Downloading...';
+    } else if (chain.status === 'extracting') {
+      return 'Extracting...';
+    } else if (chain.status === 'stopping') {
+      return 'Stopping...';
+    } else {
+      return 'Start';
     }
   };
 
@@ -332,33 +276,19 @@ const Card = ({
     setTooltipVisible(false);
   };
 
+  const isButtonDisabled = () => {
+    return chain.status === 'downloading' ||
+      chain.status === 'extracting' ||
+      chain.status === 'stopping';
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
   return (
     <>
       <div className={`card ${styles.card} ${isDarkMode ? 'dark' : 'light'}`}>
-        <div className={styles.actionSection}>
-          <button
-            ref={buttonRef}
-            className={`${buttonStyles.btn} ${buttonStyles[getButtonClass()]}`}
-            onClick={handleAction}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={handleMouseLeave}
-            disabled={
-              chain.status === 'downloading' ||
-              chain.status === 'extracting' ||
-              chain.status === 'stopping'
-            }
-            id={`download-button-${chain.id}`}
-          >
-            {downloadInfo && (chain.status === 'downloading' || chain.status === 'extracting') && (
-              <div 
-                className={buttonStyles.progressBar}
-                style={{ transform: `scaleX(${downloadInfo.progress / 100})` }}
-              />
-            )}
-            <span>{getButtonText()}</span>
-          </button>
-        </div>
-
         <div className={styles.chainTypeSection}>
           <div className={`${styles.chainTypeBadge} ${chain.chain_type === 0 ? styles.l1Badge : styles.l2Badge}`}>
             {chain.chain_type === 0 ? 'L1' : 'L2'}
@@ -366,20 +296,76 @@ const Card = ({
         </div>
 
         <div className={styles.titleSection}>
-          <h2 className={styles.title}>{chain.display_name}</h2>
-          <div className={styles.statusGroup}>
-            <div className={`status-light ${processHealth} ${styles.statusLight}`} title={`Process Status: ${processHealth}`} />
-            <div className={styles.statusText}>
-              {chain.status === 'running' || chain.status === 'starting' || chain.status === 'ready' ? 
-                (chain.id === 'bitwindow' ? 'Running' :
-                 blockCount >= 0 ? `Block Height: ${blockCount}` : 'Running') :
-                (chain.status === 'stopping' && chain.id === 'bitcoin' ? 'Stopping...' : 'Offline')}
+          <div className={styles.titleRow}>
+            <h2 className={styles.title}>{chain.display_name}</h2>
+            <div className="status-group">
+              <div className={`status-light ${processHealth}`} title={`Process Status: ${processHealth}`} />
+              <div className="status-text">
+                {chain.status === 'running' || chain.status === 'starting' || chain.status === 'ready' ? 
+                  (chain.id === 'bitwindow' ? 'Running' :
+                   blockCount >= 0 ? (
+                    <span className="block-count">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 2V19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M17 7L12 2L7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Block: {blockCount}
+                    </span>
+                  ) : 'Running') :
+                  (chain.status === 'stopping' && chain.id === 'bitcoin' ? 'Stopping...' : 'Offline')}
+              </div>
             </div>
           </div>
         </div>
-
+        
+        <div className={styles.actionSection}>
+          <button
+            ref={buttonRef}
+            className={`${getButtonClass()} action-button`}
+            onClick={handleAction}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            disabled={isButtonDisabled()}
+          >
+            {chain.status === 'downloading' && downloadInfo && (
+              <div 
+                className="button-progress-bar"
+                style={{ transform: `scaleX(${downloadInfo.progress / 100})` }}
+              />
+            )}
+            <span>{getButtonText()}</span>
+            {chain.status !== 'downloading' && (
+              <span className="button-icon">
+                {chain.status === 'running' || chain.status === 'starting' || chain.status === 'ready' ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
+                    <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 5L19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </span>
+            )}
+          </button>
+        </div>
+        
         <div className={styles.descriptionSection}>
           <p className={styles.description}>{chain.description}</p>
+          {chain.status === 'downloading' && downloadInfo && (
+            <div className="download-progress">
+              <div className="progress-bar-container">
+                <div 
+                  className="progress-bar" 
+                  style={{ width: `${downloadInfo.progress}%` }}
+                />
+              </div>
+              <span className="download-percentage">{Math.round(downloadInfo.progress)}%</span>
+            </div>
+          )}
         </div>
 
         <div className={styles.iconSection}>

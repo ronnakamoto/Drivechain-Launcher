@@ -24,13 +24,14 @@
 
 .logoText {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 700;
   color: #000;
   letter-spacing: -0.5px;
-  background: linear-gradient(90deg, #007AFF, #5856D6);
+  background: linear-gradient(90deg, #D62828, #FFC300);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .navLinks {
@@ -126,10 +127,11 @@
   }
   
   .logoText {
-    background: linear-gradient(90deg, #0A84FF, #5E5CE6);
+    background: linear-gradient(90deg, #FFC300, #D62828);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
   
   .navLinks {

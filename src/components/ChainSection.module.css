@@ -1,0 +1,92 @@
+.chainSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Reduced gap for more consistent spacing */
+  padding: 24px 24px 16px 24px; /* Adjusted bottom padding */
+  width: 100%;
+  margin-bottom: 8px; /* Added bottom margin for spacing between sections */
+}
+
+.chainHeading {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 16px 0; /* Increased bottom margin */
+  color: var(--text-color);
+  letter-spacing: -0.5px;
+  position: relative;
+  display: inline-block;
+}
+
+.chainHeading::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  border-radius: 1.5px;
+  background: linear-gradient(90deg, var(--accent-color, #007AFF), transparent);
+}
+
+:global(.dark) .chainHeading::after {
+  background: linear-gradient(90deg, var(--accent-color, #0A84FF), transparent);
+}
+
+.l1Chains, .l2Chains {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 24px; /* Keep horizontal gap at 24px */
+  row-gap: 24px; /* Explicit row gap for vertical spacing */
+  width: 100%;
+  padding-bottom: 8px; /* Added padding at bottom */
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  text-align: center;
+  background: rgba(var(--background-color-rgb, 255, 255, 255), 0.5);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(var(--text-color-rgb, 0, 0, 0), 0.1);
+  min-height: 200px;
+}
+
+.emptyStateIcon {
+  width: 64px;
+  height: 64px;
+  opacity: 0.3;
+  margin-bottom: 16px;
+  color: var(--text-color, #000);
+}
+
+.emptyStateTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text-color, #000);
+}
+
+.emptyStateDescription {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  color: var(--text-color, #000);
+  opacity: 0.7;
+  max-width: 400px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .l1Chains, .l2Chains {
+    grid-template-columns: 1fr;
+  }
+  
+  .chainSection {
+    padding: 16px;
+  }
+}
