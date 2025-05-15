@@ -470,8 +470,14 @@ function Nodes() {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingContent}>
-          <h2>Loading Drivechain Launcher...</h2>
-          <div className={styles.loadingSpinner} />
+          <h2>Loading Drivechain Launcher</h2>
+          <div className={styles.loadingSpinner}>
+            <img 
+              src={process.env.PUBLIC_URL + '/icon.png'} 
+              className={styles.loadingIcon} 
+              alt="Drivechain Logo" 
+            />
+          </div>
         </div>
       </div>
     );

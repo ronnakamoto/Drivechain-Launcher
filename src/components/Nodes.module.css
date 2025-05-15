@@ -144,34 +144,100 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(var(--window-height) - 24px);
+  height: 100vh;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  z-index: 1000;
 }
 
 .loadingContent {
   text-align: center;
-  padding: 24px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  max-width: 400px;
+  width: 90%;
+}
+
+:global(.dark) .loadingContent {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.loadingContent h2 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  color: var(--text-color);
 }
 
 .loadingSpinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top: 3px solid #007AFF;
-  border-radius: 50%;
-  margin: 8px auto;
-  animation: spin 1s linear infinite;
+  width: 120px;
+  height: 120px;
+  position: relative;
+  margin: 20px auto;
 }
 
-:global(.dark) .loadingSpinner {
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid #0A84FF;
+.loadingSpinner::before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff5e3a 0%, #ff9500 100%);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loadingSpinner::after {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background-color: var(--card-bg);
+  transform: translate(-50%, -50%);
+}
+
+.loadingIcon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  opacity: 0.9;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+:global(.dark) .loadingIcon {
+  filter: brightness(1.1);
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.6; transform: scale(0.85); }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
 }
 
 @keyframes spin {

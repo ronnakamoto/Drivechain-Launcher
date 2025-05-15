@@ -35,7 +35,7 @@ const AboutModal = () => {
         </button>
         
         <div className={styles.logoContainer}>
-          <img src="/icon.png" alt="Drivechain Logo" className={styles.logo} />
+          <img src="./icon.png" alt="Drivechain Logo" className={styles.logo} />
         </div>
         
         <h2 className={styles.appName}>Drivechain Launcher</h2>
