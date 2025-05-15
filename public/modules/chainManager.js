@@ -30,7 +30,7 @@ class ChainManager {
           console.error('Failed to write bitcoin.conf after download:', error);
         }
       }
-      
+
       // Create mnemonic files after download for any chain that needs them
       try {
         // Import WalletService here to avoid circular dependencies
@@ -46,7 +46,7 @@ class ChainManager {
   async isChainReady(chainId) {
     const status = this.chainStatuses.get(chainId);
     if (status !== 'running') return false;
-    
+
     if (chainId === 'bitcoin') {
       try {
         await this.bitcoinMonitor.makeRpcCall('getblockchaininfo');
@@ -55,20 +55,20 @@ class ChainManager {
         return false;
       }
     }
-    
+
     return true;
   }
 
   async waitForChainReady(chainId, timeout = 30000) {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeout) {
       if (await this.isChainReady(chainId)) {
         return true;
       }
       await new Promise(resolve => setTimeout(resolve, 500));
     }
-    
+
     throw new Error(`Timeout waiting for ${chainId} to be ready`);
   }
 
@@ -108,12 +108,12 @@ class ChainManager {
 
       const homeDir = app.getPath("home");
       const fullPath = path.join(homeDir, baseDir);
-      
+
       // Ensure the directory exists
       await fs.ensureDir(fullPath);
-      
+
       const configPath = path.join(fullPath, 'bitcoin.conf');
-      
+
       // Don't overwrite if config already exists
       if (await fs.pathExists(configPath)) {
         console.log('bitcoin.conf already exists, skipping creation');
@@ -157,7 +157,7 @@ class ChainManager {
     if (chainId === 'enforcer') {
       // Try to get mnemonic path from the enforcer extract directory
       let walletArg = '--wallet-auto-create';
-      
+
       try {
         const chain = this.getChainConfig('enforcer');
         if (chain && chain.extract_dir) {
@@ -165,7 +165,7 @@ class ChainManager {
           const downloadsDir = app.getPath("downloads");
           const extractDir = chain.extract_dir[platform];
           const mnemonicPath = path.join(downloadsDir, extractDir, 'mnemonic', 'mnemonic.txt');
-          
+
           // Use async file existence check
           if (await fs.pathExists(mnemonicPath)) {
             walletArg = `--wallet-seed-file=${mnemonicPath}`;
@@ -207,7 +207,7 @@ class ChainManager {
       const regex = new RegExp(pattern.replace(/\*/g, '.*'));
       const match = files.find(f => regex.test(f));
       if (!match) throw new Error(`No matching binary found in ${basePath}`);
-      
+
       return path.join(basePath, match);
     }
 
@@ -236,12 +236,12 @@ class ChainManager {
           const appBundlePath = path.join(downloadsDir, extractDir, 'BitWindow.app');
           await fs.promises.access(appBundlePath, fs.constants.F_OK);
           console.log(`Starting BitWindow app bundle at: ${appBundlePath}`);
-          
+
           // Launch using 'open' command for snappy startup
-          const childProcess = spawn('open', ['-a', appBundlePath], { 
-            cwd: path.dirname(appBundlePath) 
+          const childProcess = spawn('open', ['-a', appBundlePath], {
+            cwd: path.dirname(appBundlePath)
           });
-          
+
           // Wait for the app to start
           await new Promise((resolve, reject) => {
             childProcess.on('exit', async (code) => {
@@ -254,11 +254,11 @@ class ChainManager {
                   });
                   checkProcess.on('error', () => resolve(false));
                 });
-                
+
                 if (isRunning) {
                   // Store process info
                   this.runningProcesses[chainId] = {};
-                  
+
                   // Start process checker
                   const checkInterval = setInterval(async () => {
                     const checkProcess = spawn('osascript', ['-e', 'tell application "System Events" to count processes whose name is "bitwindow"']);
@@ -282,7 +282,7 @@ class ChainManager {
                     }
                   }, 1000);
                   this.processCheckers.set(chainId, checkInterval);
-                  
+
                   resolve();
                 } else {
                   reject(new Error('BitWindow failed to start'));
@@ -296,15 +296,15 @@ class ChainManager {
           // For other platforms, launch binary directly
           const fullBinaryPath = await this.getBinaryPathForChain(chainId);
           await fs.promises.access(fullBinaryPath, fs.constants.F_OK);
-          
+
           if (process.platform !== "win32") {
             await fs.promises.chmod(fullBinaryPath, "755");
           }
-          
-          const childProcess = spawn(fullBinaryPath, [], { 
+
+          const childProcess = spawn(fullBinaryPath, [], {
             cwd: basePath,
             // Ensure SIGINT is used for graceful shutdown on Windows
-            windowsHide: true 
+            windowsHide: true
           });
           this.runningProcesses[chainId] = childProcess;
           this.setupProcessListeners(childProcess, chainId, basePath);
@@ -336,10 +336,10 @@ class ChainManager {
       const baseArgs = await this.getChainArgs(chainId);
       const args = [...baseArgs, ...additionalArgs];
       console.log(`Starting ${chainId} with args:`, args);
-      
+
       const childProcess = spawn(fullBinaryPath, args, { cwd: basePath });
       this.runningProcesses[chainId] = childProcess;
-      
+
       if (chainId !== 'bitcoin') {
         this.chainStatuses.set(chainId, 'running');
         this.mainWindow.webContents.send("chain-status-update", {
@@ -400,7 +400,7 @@ class ChainManager {
       const output = data.toString();
       buffer += output;
       console.log(`[${chainId}] stdout: ${output}`);
-      
+
       if (chainId === 'bitcoin' && !readyDetected) {
         if (buffer.includes('Bound to')) {
           readyDetected = true;
@@ -418,7 +418,7 @@ class ChainManager {
           }
         }
       }
-      
+
       if (chainId !== 'bitcoin' && !readyDetected) {
         readyDetected = true;
         this.chainStatuses.set(chainId, 'running');
@@ -433,7 +433,7 @@ class ChainManager {
         type: 'stdout',
         data: output
       });
-      
+
       this.mainWindow.webContents.send("chain-log", chainId, output);
     });
 
@@ -441,13 +441,13 @@ class ChainManager {
       const output = data.toString();
       buffer += output;
       console.error(`[${chainId}] stderr: ${output}`);
-      
+
       this.mainWindow.webContents.send("chain-output", {
         chainId,
         type: 'stderr',
         data: output
       });
-      
+
       this.mainWindow.webContents.send("chain-log", chainId, output);
     });
 
@@ -495,48 +495,110 @@ class ChainManager {
             status: "stopping"
           });
 
-          // Kill both processes
+          // Platform-specific BitWindow termination
           if (process.platform === 'darwin') {
-            const killBitWindow = spawn('killall', ['bitwindow']);
-            const killBitWindowd = spawn('killall', ['bitwindowd']);
-            
-            // Wait for both kill commands to complete
-            await Promise.all([
-              new Promise(resolve => killBitWindow.on('exit', resolve)),
-              new Promise(resolve => killBitWindowd.on('exit', resolve))
-            ]);
+            console.log('Terminating BitWindow on macOS...');
 
-            // Let the process checker detect the stop and update status
-            await new Promise(resolve => {
-              const maxWaitTime = 5000; // 5 second timeout
-              const startTime = Date.now();
-              
-              const waitInterval = setInterval(() => {
-                const checkProcess = spawn('osascript', ['-e', 'tell application "System Events" to count processes whose name is "bitwindow"']);
-                checkProcess.stdout.on('data', (data) => {
-                  const isRunning = parseInt(data.toString().trim()) > 0;
-                  if (!isRunning || Date.now() - startTime > maxWaitTime) {
-                    clearInterval(waitInterval);
-                    
-                    // Now that we confirmed processes are dead, clean up
-                    const checkInterval = this.processCheckers.get(chainId);
-                    if (checkInterval) {
-                      clearInterval(checkInterval);
-                      this.processCheckers.delete(chainId);
+            // Direct process identification and kill - the method that works reliably on macOS
+            try {
+              // Get all process IDs matching bitwindow (case insensitive)
+              console.log('Finding BitWindow processes...');
+              const psProcess = spawn('ps', ['-ax']);
+              const output = await new Promise(resolve => {
+                let stdout = '';
+                psProcess.stdout.on('data', data => { stdout += data.toString(); });
+                psProcess.on('exit', () => resolve(stdout));
+              });
+
+              // Parse output to find BitWindow processes
+              const lines = output.split('\n');
+              let foundProcesses = false;
+
+              for (const line of lines) {
+                if (line.toLowerCase().includes('bitwindow')) {
+                  const parts = line.trim().split(/\s+/);
+                  if (parts.length > 0) {
+                    const pid = parts[0];
+                    if (/^\d+$/.test(pid)) {
+                      foundProcesses = true;
+                      console.log(`Killing BitWindow process with PID ${pid}`);
+                      const killProcess = spawn('kill', ['-9', pid]);
+                      await new Promise(resolve => killProcess.on('exit', resolve));
                     }
-                    
-                    delete this.runningProcesses[chainId];
-                    this.chainStatuses.set(chainId, 'stopped');
-                    this.mainWindow.webContents.send("chain-status-update", {
-                      chainId,
-                      status: "stopped"
-                    });
-                    
-                    resolve();
                   }
+                }
+              }
+
+              if (!foundProcesses) {
+                console.log('No BitWindow processes found to terminate');
+              }
+            } catch (error) {
+              console.warn('Failed to kill BitWindow processes:', error);
+            }
+
+            // Verify all processes are terminated
+            console.log('Verifying BitWindow termination...');
+            let allTerminated = false;
+            const startTime = Date.now();
+            const maxWaitTime = 2000; // 2 seconds max wait
+
+            while (!allTerminated && Date.now() - startTime < maxWaitTime) {
+              try {
+                const checkProcess = spawn('pgrep', ['-i', 'bitwindow']);
+                const output = await new Promise(resolve => {
+                  let stdout = '';
+                  checkProcess.stdout.on('data', data => { stdout += data.toString(); });
+                  checkProcess.on('exit', () => resolve(stdout));
                 });
-              }, 100);
+
+                allTerminated = output.trim() === '';
+                if (!allTerminated) {
+                  console.log('BitWindow processes still running, retrying kill...');
+
+                  // Try one more time with pkill as a fallback
+                  const pkillProcess = spawn('pkill', ['-9', '-i', 'bitwindow']);
+                  await new Promise(resolve => pkillProcess.on('exit', resolve));
+                  await new Promise(resolve => setTimeout(resolve, 500));
+                }
+              } catch (error) {
+                console.warn('Error checking BitWindow processes:', error);
+                break;
+              }
+            }
+
+            // Clean up tracking
+            const checkInterval = this.processCheckers.get(chainId);
+            if (checkInterval) {
+              clearInterval(checkInterval);
+              this.processCheckers.delete(chainId);
+            }
+
+            delete this.runningProcesses[chainId];
+            this.chainStatuses.set(chainId, 'stopped');
+            this.mainWindow.webContents.send("chain-status-update", {
+              chainId,
+              status: "stopped"
             });
+
+            console.log('BitWindow termination process complete');
+
+            // Final verification
+            try {
+              const finalCheck = spawn('pgrep', ['-i', 'bitwindow']);
+              const output = await new Promise(resolve => {
+                let stdout = '';
+                finalCheck.stdout.on('data', data => { stdout += data.toString(); });
+                finalCheck.on('exit', () => resolve(stdout));
+              });
+
+              if (output.trim() !== '') {
+                console.warn('WARNING: Some BitWindow processes may still be running after termination attempts');
+              } else {
+                console.log('SUCCESS: All BitWindow processes have been terminated');
+              }
+            } catch (error) {
+              console.warn('Error during final BitWindow process check:', error);
+            }
           } else {
             if (process.platform === 'win32') {
               // Windows doesn't handle signals like SIGINT the same way as UNIX-based systems,
@@ -548,7 +610,7 @@ class ChainManager {
                   // Try graceful termination first with PID
                   const taskkill = spawn('taskkill', ['/PID', childProcess.pid.toString()]);
                   await new Promise((resolve) => taskkill.on('exit', resolve));
-                  
+
                   // If process is still running after 2 seconds, force kill by PID
                   await new Promise(resolve => setTimeout(resolve, 2000));
                   if (this.runningProcesses[chainId]) {
@@ -560,7 +622,7 @@ class ChainManager {
                   const processName = 'bitwindow.exe';
                   const taskkill = spawn('taskkill', ['/IM', processName]);
                   await new Promise((resolve) => taskkill.on('exit', resolve));
-                  
+
                   // If still running after 2 seconds, force kill by image name
                   await new Promise(resolve => setTimeout(resolve, 2000));
                   if (this.runningProcesses[chainId]) {
@@ -575,10 +637,10 @@ class ChainManager {
               // Send SIGINT for graceful shutdown
               childProcess.kill('SIGINT');
             }
-            
+
             // Give BitWindow time to cleanup and shutdown
             await new Promise(resolve => setTimeout(resolve, 2000));
-            
+
             // Force kill if still running
             if (this.runningProcesses[chainId]) {
               childProcess.kill();
@@ -609,15 +671,15 @@ class ChainManager {
         const platform = process.platform;
         const chain = this.getChainConfig(chainId);
         if (!chain) throw new Error("Chain not found");
-        
+
         const extractDir = chain.extract_dir?.[platform];
         if (!extractDir) throw new Error(`No extract directory configured for platform ${platform}`);
-        
+
         const downloadsDir = app.getPath("downloads");
         const basePath = path.join(downloadsDir, extractDir);
         const binaryDir = path.dirname(path.join(basePath, chain.binary[platform]));
         const bitcoinCliPath = path.join(binaryDir, platform === 'win32' ? 'bitcoin-cli.exe' : 'bitcoin-cli');
-        
+
         try {
           if (process.platform !== "win32") {
             await fs.promises.chmod(bitcoinCliPath, "755");
@@ -646,7 +708,7 @@ class ChainManager {
           });
 
           await new Promise((resolve) => stopProcess.on('close', resolve));
-          
+
           await new Promise((resolve) => {
             const checkInterval = setInterval(() => {
               if (!this.runningProcesses[chainId]) {
@@ -655,13 +717,13 @@ class ChainManager {
               }
             }, 100);
           });
-          
+
           return { success: true };
         } catch (error) {
           console.warn('Graceful shutdown failed, forcing process termination:', error);
         }
       }
-      
+
       childProcess.kill();
       delete this.runningProcesses[chainId];
       this.chainStatuses.set(chainId, 'stopped');
@@ -714,13 +776,13 @@ class ChainManager {
       // Special handling for BitWindow - reset all related chains
       if (chainId === 'bitwindow') {
         const chainsToReset = ['bitwindow', 'bitcoin', 'enforcer'];
-        
+
         // First clean up all downloads for involved chains
         if (this.downloadManager) {
           for (const id of chainsToReset) {
             const chain = this.getChainConfig(id);
             if (!chain) continue;
-            
+
             const platform = process.platform;
             const extractDir = chain.extract_dir?.[platform];
             if (extractDir) {
@@ -743,7 +805,7 @@ class ChainManager {
             status: "stopped",
           });
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Reset each chain's data
@@ -757,7 +819,7 @@ class ChainManager {
 
           const homeDir = app.getPath("home");
           const fullPath = path.join(homeDir, baseDir);
-          
+
           // Remove data directory
           await fs.remove(fullPath);
           console.log(`Reset chain ${id}: removed data directory ${fullPath}`);
@@ -858,7 +920,7 @@ class ChainManager {
       console.log(`Recreated empty data directory for chain ${chainId}: ${fullPath}`);
 
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Now set to not_downloaded for final state
       this.chainStatuses.set(chainId, 'not_downloaded');
       this.mainWindow.webContents.send("chain-status-update", {
@@ -907,11 +969,11 @@ class ChainManager {
   getFullDataDir(chainId) {
     const chain = this.getChainConfig(chainId);
     if (!chain) throw new Error("Chain not found");
-    
+
     const platform = process.platform;
     const baseDir = chain.directories.base[platform];
     if (!baseDir) throw new Error(`No base directory configured for platform ${platform}`);
-    
+
     return path.join(app.getPath("home"), baseDir);
   }
 
@@ -994,7 +1056,7 @@ class ChainManager {
       for (const chain of this.config.chains) {
         const chainId = chain.id;
         const platform = process.platform;
-        
+
         // Remove data directory
         const baseDir = chain.directories.base[platform];
         if (baseDir) {

@@ -152,7 +152,7 @@ function createWindow() {
     mainWindow.on("closed", () => {
       mainWindow = null;
     });
-    
+
     // Set up the custom menu
     createMenu(mainWindow);
   }
@@ -272,7 +272,7 @@ function setupIPCHandlers() {
     try {
       const chain = config.chains.find(c => c.id === chainId);
       let args = [];
-      
+
       // Only for Thunder and Bitnames (layer 2 chains)
       if (chain && chain.chain_layer === 2 && chain.slot) {
         const walletPath = path.join(
@@ -280,10 +280,10 @@ function setupIPCHandlers() {
           chain.directories.base[process.platform],
           "wallet.mdb"
         );
-        
+
         const walletExists = await fs.pathExists(walletPath);
         console.log(`[${chainId}] Checking wallet.mdb at: ${walletPath}`);
-        
+
         if (!walletExists) {
           const mnemonicPath = walletManager.walletService.getMnemonicPath(chain.slot);
           args = ['--mnemonic-seed-phrase-path', mnemonicPath];
@@ -292,7 +292,7 @@ function setupIPCHandlers() {
           console.log(`[${chainId}] wallet.mdb exists - skipping mnemonic arg`);
         }
       }
-      
+
       return await chainManager.startChain(chainId, args);
     } catch (error) {
       console.error("Failed to start chain:", error);
@@ -370,14 +370,14 @@ function setupIPCHandlers() {
       const response = await axios.get(
         `https://api.github.com/repos/${chain.github.owner}/${chain.github.repo}/releases/latest`
       );
-      
+
       const pattern = chain.github.asset_patterns[platform];
       if (!pattern) throw new Error(`No asset pattern found for platform ${platform}`);
-      
+
       const regex = new RegExp(pattern);
       const asset = response.data.assets.find(a => regex.test(a.name));
       if (!asset) throw new Error(`No matching asset found for platform ${platform}`);
-      
+
       url = asset.browser_download_url;
     } else {
       // Traditional releases.drivechain.info approach
@@ -388,7 +388,7 @@ function setupIPCHandlers() {
     await fs.ensureDir(extractPath);
     activeDownloadCount++;
     updatePowerSaveBlocker();
-    
+
     try {
       await downloadManager.startDownload(chainId, url, extractPath);
       return { success: true };
@@ -473,7 +473,7 @@ function setupIPCHandlers() {
     try {
       const walletDir = path.join(app.getPath('userData'), 'wallet_starters');
       let filePath;
-      
+
       switch (type) {
         case 'master':
           filePath = path.join(walletDir, 'master_starter.json');
@@ -586,14 +586,14 @@ function setupIPCHandlers() {
           const response = await axios.get(
             `https://api.github.com/repos/${chain.github.owner}/${chain.github.repo}/releases/latest`
           );
-          
+
           const pattern = chain.github.asset_patterns[platform];
           if (!pattern) continue;
-          
+
           const regex = new RegExp(pattern);
           const asset = response.data.assets.find(a => regex.test(a.name));
           if (!asset) continue;
-          
+
           url = asset.browser_download_url;
           // Set timestamp immediately after successful download
           await downloadManager.timestamps.setTimestamp(chainId, new Date().toISOString());
@@ -704,15 +704,15 @@ function setupIPCHandlers() {
 async function migrateExistingMnemonics() {
   try {
     console.log("Checking for mnemonic files to migrate...");
-    
+
     const walletStartersDir = path.join(app.getPath('userData'), 'wallet_starters');
     const oldMnemonicsDir = path.join(walletStartersDir, 'mnemonics');
-    
+
     if (!fs.existsSync(oldMnemonicsDir)) {
       console.log("No old mnemonics directory found, skipping migration");
       return;
     }
-    
+
     const files = await fs.readdir(oldMnemonicsDir);
     if (files.length === 0) {
       console.log("No mnemonic files to migrate");
@@ -721,34 +721,34 @@ async function migrateExistingMnemonics() {
       console.log("Removed empty mnemonics directory");
       return;
     }
-    
+
     if (!config || !config.chains || !Array.isArray(config.chains)) {
       console.log("Chain configuration not available, cannot migrate mnemonics yet");
       return;
     }
-    
+
     const platform = process.platform;
     const downloadsDir = app.getPath('downloads');
-    
+
     // Map filenames to their target chain extract directories
     const fileToChainMap = {};
-    
+
     // Map L1 to enforcer
     const enforcerChain = config.chains.find(chain => chain.id === 'enforcer');
     if (enforcerChain && enforcerChain.extract_dir && enforcerChain.extract_dir[platform]) {
       fileToChainMap['l1.txt'] = enforcerChain;
     }
-    
+
     // Map sidechain files to their chains
     for (const chain of config.chains) {
       if (chain.slot) {
         fileToChainMap[`sidechain_${chain.slot}.txt`] = chain;
       }
     }
-    
+
     // Track files that were migrated so we can remove them later
     const migratedFiles = [];
-    
+
     // Migrate files
     for (const file of files) {
       const chain = fileToChainMap[file];
@@ -756,48 +756,48 @@ async function migrateExistingMnemonics() {
         console.log(`Unknown mnemonic file ${file}, skipping migration`);
         continue;
       }
-      
+
       const extractDir = chain.extract_dir?.[platform];
       if (!extractDir) {
         console.log(`No extract directory configured for ${chain.id} on platform ${platform}, skipping migration of ${file}`);
         continue;
       }
-      
+
       const sourceFile = path.join(oldMnemonicsDir, file);
       const targetExtractDir = path.join(downloadsDir, extractDir);
-      
+
       // Check if the extract directory exists (chain has been downloaded)
       if (!fs.existsSync(targetExtractDir)) {
         console.log(`Extract directory ${targetExtractDir} doesn't exist yet, chain ${chain.id} may not be downloaded, skipping migration of ${file}`);
         continue;
       }
-      
+
       // Create mnemonic directory
       const targetMnemonicDir = path.join(targetExtractDir, 'mnemonic');
       await fs.ensureDir(targetMnemonicDir);
-      
+
       // Use standardized filename
       const targetFile = path.join(targetMnemonicDir, 'mnemonic.txt');
-      
+
       // Skip if target file already exists
       if (fs.existsSync(targetFile)) {
         console.log(`Mnemonic file ${targetFile} already exists, skipping migration`);
         migratedFiles.push(file); // Consider this file migrated
         continue;
       }
-      
+
       // Copy the file
       await fs.copy(sourceFile, targetFile);
       console.log(`Migrated mnemonic file from ${sourceFile} to ${targetFile}`);
       migratedFiles.push(file);
     }
-    
+
     // Clean up old files that were successfully migrated
     for (const file of migratedFiles) {
       await fs.remove(path.join(oldMnemonicsDir, file));
       console.log(`Removed old mnemonic file: ${file}`);
     }
-    
+
     // If all files were migrated, remove the old directory
     const remainingFiles = await fs.readdir(oldMnemonicsDir);
     if (remainingFiles.length === 0) {
@@ -806,7 +806,7 @@ async function migrateExistingMnemonics() {
     } else {
       console.log(`${remainingFiles.length} mnemonic files couldn't be migrated yet, kept in original location`);
     }
-    
+
     console.log("Mnemonic migration completed");
   } catch (error) {
     console.error("Error migrating mnemonics:", error);
@@ -816,30 +816,30 @@ async function migrateExistingMnemonics() {
 async function initialize() {
   try {
     await loadConfig();
-    
+
     // Initialize managers that don't depend on mainWindow
     directoryManager = new DirectoryManager(config);
     await directoryManager.setupChainDirectories();
-    
+
     const configManager = new ConfigManager(configPath);
     await configManager.loadConfig();
     await configManager.setupExtractDirectories();
-    
+
     walletManager = new WalletManager(config);
     fastWithdrawalManager = new FastWithdrawalManager();
     apiManager = new ApiManager();
-    
+
     // Create window first
     createWindow();
-    
+
     // Then initialize managers that need mainWindow
     downloadManager = new DownloadManager(mainWindow, config);
     chainManager = new ChainManager(mainWindow, config, downloadManager);
     updateManager = new UpdateManager(config, chainManager);
-    
+
     // Run migration function to handle any existing mnemonics
     await migrateExistingMnemonics();
-    
+
     // Finally setup IPC handlers after everything is initialized
     setupIPCHandlers();
   } catch (error) {
@@ -854,10 +854,10 @@ app.commandLine.appendSwitch('no-sandbox');
 async function startApp() {
   // Show loading window first
   createLoadingWindow();
-  
+
   // Wait a bit to ensure loading window is visible
   await new Promise(resolve => setTimeout(resolve, 100));
-  
+
   // Then start initialization
   await initialize();
 }
@@ -905,14 +905,40 @@ async function performGracefulShutdown() {
     // Then stop running chains with a timeout
     if (chainManager) {
       const runningChains = Object.keys(chainManager.runningProcesses);
-      await Promise.race([
-        Promise.all(runningChains.map(chainId => 
-          chainManager.stopChain(chainId).catch(err => 
-            console.error(`Error stopping ${chainId}:`, err)
-          )
-        )),
-        new Promise(resolve => setTimeout(resolve, 5000)) // 5 second timeout for chain stopping
-      ]);
+
+      // On macOS, prioritize stopping BitWindow first
+      if (process.platform === 'darwin' && runningChains.includes('bitwindow')) {
+        console.log('Prioritizing BitWindow shutdown on macOS...');
+        try {
+          await chainManager.stopChain('bitwindow').catch(err =>
+            console.error(`Error stopping BitWindow:`, err)
+          );
+          // Remove BitWindow from the list of chains to stop
+          const remainingChains = runningChains.filter(id => id !== 'bitwindow');
+
+          // Stop remaining chains
+          await Promise.race([
+            Promise.all(remainingChains.map(chainId =>
+              chainManager.stopChain(chainId).catch(err =>
+                console.error(`Error stopping ${chainId}:`, err)
+              )
+            )),
+            new Promise(resolve => setTimeout(resolve, 5000)) // 5 second timeout for chain stopping
+          ]);
+        } catch (error) {
+          console.error('Error during prioritized BitWindow shutdown:', error);
+        }
+      } else {
+        // Standard shutdown for other platforms or when BitWindow is not running
+        await Promise.race([
+          Promise.all(runningChains.map(chainId =>
+            chainManager.stopChain(chainId).catch(err =>
+              console.error(`Error stopping ${chainId}:`, err)
+            )
+          )),
+          new Promise(resolve => setTimeout(resolve, 5000)) // 5 second timeout for chain stopping
+        ]);
+      }
     }
 
     clearTimeout(forceKillTimeout);
@@ -960,7 +986,30 @@ function forceKillAllProcesses() {
       }
     });
   }
-  
+
+  // Special handling for BitWindow on macOS - using the direct process termination method
+  if (process.platform === 'darwin') {
+    try {
+      console.log('Ensuring BitWindow processes are terminated on macOS...');
+      const { spawn } = require('child_process');
+
+      // Direct process identification and kill - the method that works reliably
+      try {
+        // Execute this as a shell command for simplicity since we're force exiting anyway
+        // This combines the ps, grep, and kill commands in one efficient shell command
+        console.log('Finding and killing BitWindow processes by PID...');
+        spawn('sh', ['-c', 'ps -ax | grep -i bitwindow | grep -v grep | awk \'{print $1}\' | xargs -I {} kill -9 {} 2>/dev/null || true']);
+
+        // Also use pkill as a backup method
+        spawn('pkill', ['-9', '-i', 'bitwindow']);
+      } catch (error) {
+        console.warn('Failed to kill BitWindow processes:', error);
+      }
+    } catch (error) {
+      console.error('Error force killing BitWindow processes:', error);
+    }
+  }
+
   if (forceKillTimeout) {
     clearTimeout(forceKillTimeout);
   }

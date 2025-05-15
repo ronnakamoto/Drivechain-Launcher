@@ -5,7 +5,7 @@ class BitWindowClient {
     this.config = {
       baseURL: 'http://127.0.0.1:8080',
       headers: {
-        'Content-Type': 'application/connect+json',
+        'Content-Type': 'application/json',
         'Connect-Protocol-Version': '1'
       }
     };
@@ -40,7 +40,7 @@ class BitWindowClient {
   async waitForConnection(timeoutSeconds = 60) {
     this.initializingBinary = true;
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeoutSeconds * 1000) {
       try {
         if (await this.checkConnection()) {
@@ -53,23 +53,27 @@ class BitWindowClient {
       }
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    
+
     this.initializingBinary = false;
     throw new Error('BitWindow connection timeout');
   }
 
   async stop() {
     try {
-      // Use Connect protocol for stop
-      await this.makeConnectRequest('bitwindowd.v1.BitwindowdService', 'Stop', {});
-      
-      // Wait for shutdown
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
+      // Note: This method is kept for API compatibility, but we no longer use it for stopping BitWindow
+      // on macOS since the API approach is unreliable. We now use direct process termination instead.
+      console.log('BitWindow API stop method called, but not used for termination on macOS');
+
+      // For non-macOS platforms, we'll still try to use the API
+      if (process.platform !== 'darwin') {
+        await this.makeConnectRequest('bitwindowd.v1.BitwindowdService', 'Stop', {});
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
       this.connected = false;
       return true;
     } catch (error) {
-      console.error('Failed to stop BitWindow:', error);
+      console.error('Failed to stop BitWindow via API:', error);
       throw error;
     }
   }
