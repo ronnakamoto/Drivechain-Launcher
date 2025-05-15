@@ -64,7 +64,7 @@ const Card = ({
         handleOpenSettings();
       }
     };
-    
+
     window.addEventListener('openChainSettings', handleOpenChainSettings);
 
     const fetchBlockCount = async () => {
@@ -79,15 +79,15 @@ const Card = ({
 
     if (chain.status === 'stopping' && chain.id === 'bitcoin') {
       setProcessHealth('warning');
-    } else if (chain.status === 'not_downloaded' || 
-        chain.status === 'downloaded' || 
+    } else if (chain.status === 'not_downloaded' ||
+        chain.status === 'downloaded' ||
         chain.status === 'stopped' ||
         chain.status === 'stopping' ||
         chain.status === 'downloading' ||
         chain.status === 'extracting') {
       setProcessHealth('offline');
-    } else if (chain.status === 'running' || 
-               chain.status === 'starting' || 
+    } else if (chain.status === 'running' ||
+               chain.status === 'starting' ||
                chain.status === 'ready') {
       setProcessHealth('healthy');
     } else {
@@ -98,10 +98,10 @@ const Card = ({
     const intervalTime = runningTime > 5000 ? 500 : 5000;
 
     const interval = setInterval(() => {
-      if (chain.status === 'running' || 
-          chain.status === 'starting' || 
+      if (chain.status === 'running' ||
+          chain.status === 'starting' ||
           chain.status === 'ready') {
-        
+
         if (chain.id !== 'bitwindow') {
           fetchBlockCount();
           if (blockCount === 0) {
@@ -122,7 +122,7 @@ const Card = ({
     try {
       // Get chain dependencies
       const dependencies = chain.dependencies || [];
-      
+
       // Check if all dependencies are running
       const missingDeps = [];
       for (const depId of dependencies) {
@@ -135,7 +135,7 @@ const Card = ({
           }
         }
       }
-      
+
       return missingDeps;
     } catch (error) {
       console.error('Error checking dependencies:', error);
@@ -181,18 +181,18 @@ const Card = ({
         if (missingDeps.length > 0) {
           const depNames = missingDeps.join(', ');
           setTooltipText(`Missing dependencies: ${depNames}`);
-          
+
           const rect = buttonRef.current.getBoundingClientRect();
           setTooltipPosition({
             x: rect.left + rect.width / 2,
             y: rect.top - 10
           });
-          
+
           setTooltipVisible(true);
           setTimeout(() => setTooltipVisible(false), 3000);
           return;
         }
-        
+
         onStart(chain.id);
       } else if (chain.status === 'running' || chain.status === 'ready') {
         // Check if any other chains depend on this one
@@ -201,7 +201,7 @@ const Card = ({
           setShowForceStop(true);
           return;
         }
-        
+
         onStop(chain.id);
       }
     } catch (error) {
@@ -219,19 +219,51 @@ const Card = ({
     }
   };
 
-  const handleOpenSettings = () => {
+  const handleOpenSettings = async () => {
     try {
-      // Fetch full chain data if needed
-      if (!fullChainData || Object.keys(fullChainData).length === 0) {
-        const chainData = window.cardData.find(c => c.id === chain.id);
-        if (chainData) {
-          setFullChainData(chainData);
-        }
-      }
-      
+      // Always fetch the latest directory information
+      const fullDataDir = await window.electronAPI.getFullDataDir(chain.id);
+      const walletDir = await window.electronAPI.getWalletDir(chain.id);
+      const binaryDir = await window.electronAPI.getBinaryDir(chain.id);
+
+      // Get the base chain data
+      const chainData = window.cardData.find(c => c.id === chain.id) || chain;
+
+      // Create a formatted chain object with all the necessary properties
+      const formattedChain = {
+        ...chainData,
+        dataDir: fullDataDir,
+        walletDir: walletDir,
+        binaryDir: binaryDir,
+        repo_url: chainData.repo_url || chain.repo_url
+      };
+
+      console.log(`Fetched directory info for ${chain.id}:`, {
+        dataDir: fullDataDir,
+        walletDir: walletDir,
+        binaryDir: binaryDir
+      });
+
+      setFullChainData(formattedChain);
       setShowSettings(true);
     } catch (error) {
       console.error('Error opening settings:', error);
+
+      // Fallback to basic chain data if API calls fail
+      const chainData = window.cardData.find(c => c.id === chain.id) || chain;
+
+      // Make sure we include the repository URL
+      const formattedChain = {
+        ...chainData,
+        repo_url: chainData.repo_url || chain.repo_url
+      };
+
+      console.log(`Fallback chain data for ${chain.id}:`, {
+        repo_url: formattedChain.repo_url
+      });
+
+      setFullChainData(formattedChain);
+      setShowSettings(true);
     }
   };
 
@@ -304,7 +336,7 @@ const Card = ({
             <div className="status-group">
               <div className={`status-light ${processHealth}`} title={`Process Status: ${processHealth}`} />
               <div className="status-text">
-                {chain.status === 'running' || chain.status === 'starting' || chain.status === 'ready' ? 
+                {chain.status === 'running' || chain.status === 'starting' || chain.status === 'ready' ?
                   (chain.id === 'bitwindow' ? 'Running' :
                    blockCount >= 0 ? (
                     <span className="block-count">
@@ -321,7 +353,7 @@ const Card = ({
             </div>
           </div>
         </div>
-        
+
         <div className={styles.actionSection}>
           <button
             ref={buttonRef}
@@ -332,7 +364,7 @@ const Card = ({
             disabled={isButtonDisabled()}
           >
             {chain.status === 'downloading' && downloadInfo && (
-              <div 
+              <div
                 className="button-progress-bar"
                 style={{ transform: `scaleX(${downloadInfo.progress / 100})` }}
               />
@@ -355,14 +387,14 @@ const Card = ({
             )}
           </button>
         </div>
-        
+
         <div className={styles.descriptionSection}>
           <p className={styles.description}>{chain.description}</p>
           {chain.status === 'downloading' && downloadInfo && (
             <div className="download-progress">
               <div className="progress-bar-container">
-                <div 
-                  className="progress-bar" 
+                <div
+                  className="progress-bar"
                   style={{ width: `${downloadInfo.progress}%` }}
                 />
               </div>
@@ -376,9 +408,9 @@ const Card = ({
             <button className={buttonStyles.iconButton} onClick={handleOpenSettings} aria-label="Chain Settings">
               <SettingsIcon />
             </button>
-            <button 
-              className={buttonStyles.iconButton} 
-              onClick={() => setShowResetConfirm(true)} 
+            <button
+              className={buttonStyles.iconButton}
+              onClick={() => setShowResetConfirm(true)}
               aria-label="Reset Chain"
               disabled={
                 chain.status === 'not_downloaded' ||
@@ -390,14 +422,14 @@ const Card = ({
                 cursor: chain.status === 'not_downloaded' ||
                         chain.status === 'downloading' ||
                         chain.status === 'extracting' ||
-                        chain.status === 'stopping' 
-                  ? 'not-allowed' 
+                        chain.status === 'stopping'
+                  ? 'not-allowed'
                   : 'pointer'
               }}
             >
               <TrashIcon />
             </button>
-            <a 
+            <a
               href={chain.repo_url}
               target="_blank"
               rel="noopener noreferrer"
@@ -410,7 +442,7 @@ const Card = ({
         </div>
       </div>
 
-      <Tooltip 
+      <Tooltip
         text={tooltipText}
         visible={tooltipVisible}
         position={tooltipPosition}
@@ -426,7 +458,7 @@ const Card = ({
                   chain.status === 'downloading' ||
                   chain.status === 'extracting' ||
                   chain.status === 'stopping'
-            ? undefined 
+            ? undefined
             : onReset}
         />
       )}

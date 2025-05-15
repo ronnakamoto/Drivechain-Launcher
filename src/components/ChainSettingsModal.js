@@ -15,7 +15,7 @@ const ChainSettingsModal = ({
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [originalChain] = useState(chain); // Keep track of the original chain
   const [currentChain, setCurrentChain] = useState(chain);
-  
+
   // Reset currentChain when the chain prop changes
   useEffect(() => {
     setCurrentChain(chain);
@@ -24,6 +24,7 @@ const ChainSettingsModal = ({
   // Debug function to log chain data
   const logChainData = (chainData, label) => {
     console.log(`${label} Chain Data:`, chainData);
+    console.log(`${label} Repository URL:`, chainData.repo_url);
   };
 
   const handleResetConfirm = () => {
@@ -60,14 +61,14 @@ const ChainSettingsModal = ({
                 {currentChain.display_name} Settings
               </h2>
               {originalChain.id === 'bitwindow' && (
-                <div style={{ 
+                <div style={{
                   fontSize: '1em',
                   color: '#888888',
                   display: 'flex',
                   alignItems: 'center',
                   marginLeft: '20px'
                 }}>
-                  <button 
+                  <button
                     onClick={async () => {
                       if (currentChain.id === 'bitcoin') {
                         // Return to BitWindow settings
@@ -79,12 +80,12 @@ const ChainSettingsModal = ({
                           if (window.cardData) {
                             bitcoinChain = window.cardData.find(c => c.id === 'bitcoin');
                           }
-                          
+
                           if (bitcoinChain) {
                             const fullDataDir = await window.electronAPI.getFullDataDir('bitcoin');
                             const walletDir = await window.electronAPI.getWalletDir('bitcoin');
                             const binaryDir = await window.electronAPI.getBinaryDir('bitcoin');
-                            
+
                             const formattedChain = {
                               ...bitcoinChain,
                               dataDir: fullDataDir,
@@ -93,7 +94,7 @@ const ChainSettingsModal = ({
                               status: 'running',
                               repo_url: 'https://github.com/bitcoin/bitcoin'
                             };
-                            
+
                             logChainData(formattedChain, 'Bitcoin');
                             setCurrentChain(formattedChain);
                           }
@@ -102,10 +103,10 @@ const ChainSettingsModal = ({
                         }
                       }
                     }}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#888888', 
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#888888',
                       cursor: 'pointer',
                       textDecoration: 'underline',
                       padding: '0 5px',
@@ -115,7 +116,7 @@ const ChainSettingsModal = ({
                     {currentChain.id === 'bitcoin' ? 'BitWindow' : 'Bitcoin Core'}
                   </button>
                   <span style={{ margin: '0 5px' }}>|</span>
-                  <button 
+                  <button
                     onClick={async () => {
                       if (currentChain.id === 'enforcer') {
                         // Return to BitWindow settings
@@ -127,12 +128,12 @@ const ChainSettingsModal = ({
                           if (window.cardData) {
                             enforcerChain = window.cardData.find(c => c.id === 'enforcer');
                           }
-                          
+
                           if (enforcerChain) {
                             const fullDataDir = await window.electronAPI.getFullDataDir('enforcer');
                             const walletDir = await window.electronAPI.getWalletDir('enforcer');
                             const binaryDir = await window.electronAPI.getBinaryDir('enforcer');
-                            
+
                             const formattedChain = {
                               ...enforcerChain,
                               dataDir: fullDataDir,
@@ -141,7 +142,7 @@ const ChainSettingsModal = ({
                               status: 'running',
                               repo_url: 'https://github.com/LayerTwo-Labs/bip300301_enforcer'
                             };
-                            
+
                             logChainData(formattedChain, 'Enforcer');
                             setCurrentChain(formattedChain);
                           }
@@ -150,10 +151,10 @@ const ChainSettingsModal = ({
                         }
                       }
                     }}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#888888', 
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#888888',
                       cursor: 'pointer',
                       textDecoration: 'underline',
                       padding: '0 5px',
@@ -172,28 +173,44 @@ const ChainSettingsModal = ({
           <div className={styles.infoGrid}>
             <div className={styles.infoRow}>
               <span className={styles.label}>Repository:</span>
-              <a
-                href={currentChain.repo_url}
-                onClick={handleOpenRepo}
-                className={styles.link}
-                title={currentChain.repo_url}
-              >
-                <span className={styles.linkText}>{currentChain.repo_url}</span>
-                <ExternalLink size={14} className={styles.externalIcon} />
-              </a>
+              {currentChain.repo_url ? (
+                <a
+                  href={currentChain.repo_url}
+                  onClick={handleOpenRepo}
+                  className={styles.link}
+                  title={currentChain.repo_url}
+                >
+                  <span className={styles.linkText}>{currentChain.repo_url}</span>
+                  <ExternalLink size={14} className={styles.externalIcon} />
+                </a>
+              ) : (
+                <span className={styles.dataDir}>
+                  <span className={styles.pathText}>No repository URL configured</span>
+                </span>
+              )}
             </div>
             <div className={styles.infoRow}>
               <span className={styles.label}>Wallet Directory:</span>
-              <span className={styles.dataDir} title={currentChain.walletDir}>
-                <span className={styles.pathText}>{currentChain.walletDir}</span>
-                <button
-                  className={styles.dirButton}
-                  onClick={() => onOpenWalletDir(currentChain.id)}
-                  title="Open wallet directory"
-                >
-                  <FolderOpen size={14} />
-                </button>
-              </span>
+              {currentChain.walletDir ? (
+                <span className={styles.dataDir} title={currentChain.walletDir}>
+                  <span className={styles.pathText}>{currentChain.walletDir}</span>
+                  <button
+                    className={styles.dirButton}
+                    onClick={() => onOpenWalletDir(currentChain.id)}
+                    title="Open wallet directory"
+                  >
+                    <FolderOpen size={14} />
+                  </button>
+                </span>
+              ) : (
+                <span className={styles.dataDir}>
+                  <span className={styles.pathText}>
+                    {currentChain.id === 'bitwindow' ?
+                      'Uses Bitcoin Core wallet' :
+                      'No wallet directory configured'}
+                  </span>
+                </span>
+              )}
             </div>
             <div className={styles.infoRow}>
               <span className={styles.label}>Data Directory:</span>
@@ -237,8 +254,8 @@ const ChainSettingsModal = ({
                   cursor: currentChain.status === 'not_downloaded' ||
                           currentChain.status === 'downloading' ||
                           currentChain.status === 'extracting' ||
-                          currentChain.status === 'stopping' 
-                    ? 'not-allowed' 
+                          currentChain.status === 'stopping'
+                    ? 'not-allowed'
                     : 'pointer'
                 }}
               >
