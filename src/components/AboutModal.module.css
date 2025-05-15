@@ -1,0 +1,138 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modalContent {
+  background-color: #f8f8f8;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+  width: 420px;
+  max-width: 90vw;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.closeButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.logoContainer {
+  margin-bottom: 20px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.appName {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.version {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 20px 0;
+}
+
+.infoSection {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+  width: 100%;
+  text-align: center;
+}
+
+.infoSection p {
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.contact {
+  margin-top: 15px;
+}
+
+.contact a {
+  color: #ff7700;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.contact a:hover {
+  color: #ff5500;
+  text-decoration: underline;
+}
+
+@media (prefers-color-scheme: dark) {
+  .modalContent {
+    background-color: #2a2a2a;
+  }
+  
+  .appName {
+    color: #f0f0f0;
+  }
+  
+  .version {
+    color: #bbb;
+  }
+  
+  .infoSection {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .infoSection p {
+    color: #ccc;
+  }
+  
+  .closeButton {
+    color: #aaa;
+  }
+  
+  .closeButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+}

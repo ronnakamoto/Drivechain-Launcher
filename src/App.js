@@ -6,8 +6,6 @@ import './scrollbar.css';
 import NavBar from './components/NavBar';
 import cardData from './CardData.json';
 import Nodes from './components/Nodes';
-import Settings from './components/Settings';
-import Other from './components/Other';
 import FaucetModal from './components/FaucetModal';
 import WalletModal from './components/WalletModal';
 import FastWithdrawalModal from './components/FastWithdrawalModal';
@@ -16,6 +14,8 @@ import WelcomeModal from './components/WelcomeModal';
 import QuoteWidget from './components/QuoteWidget';
 import ShutdownModal from './components/ShutdownModal';
 import DownloadInProgressModal from './components/DownloadInProgressModal';
+import AboutModal from './components/AboutModal';
+import AboutModalListener from './components/AboutModalListener';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 function AppContent() {
@@ -97,6 +97,8 @@ function AppContent() {
           onForceQuit={handleForceQuit}
           isOpen={showDownloadModal}
         />
+        <AboutModal />
+        <AboutModalListener />
       </div>
     </Router>
   );

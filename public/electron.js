@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, powerSaveBlocker } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, powerSaveBlocker, Menu } = require("electron");
 
 // Disable sandbox for Linux
 if (process.platform === 'linux') {
@@ -18,6 +18,7 @@ const DownloadManager = require("./modules/downloadManager");
 const ApiManager = require("./modules/apiManager");
 const DirectoryManager = require("./modules/directoryManager");
 const UpdateManager = require("./modules/updateManager");
+const { createMenu } = require("./menu");
 
 const configPath = path.join(__dirname, "chain_config.json");
 let config;
@@ -151,10 +152,22 @@ function createWindow() {
     mainWindow.on("closed", () => {
       mainWindow = null;
     });
+    
+    // Set up the custom menu
+    createMenu(mainWindow);
   }
 }
 
 function setupIPCHandlers() {
+  // Add handler for showing the About dialog
+  ipcMain.handle("show-about-dialog", () => {
+    if (mainWindow) {
+      mainWindow.webContents.send("show-about-modal");
+      return { success: true };
+    }
+    return { success: false };
+  });
+
   // Add handler for update messages from frontend
   ipcMain.on('toMain', (event, data) => {
     switch (data.type) {

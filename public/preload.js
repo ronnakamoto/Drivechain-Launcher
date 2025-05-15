@@ -86,6 +86,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener("bitcoin-sync-started", subscription);
     };
   },
+  
+  // About modal event
+  onShowAboutModal: (callback) => {
+    const subscription = (event) => callback();
+    ipcRenderer.on("show-about-modal", subscription);
+    return () => {
+      ipcRenderer.removeListener("show-about-modal", subscription);
+    };
+  },
   waitForChain: (chainId) => ipcRenderer.invoke("wait-for-chain", chainId),
   
   // Wallet Methods
@@ -138,6 +147,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   forceQuitWithDownloads: () => ipcRenderer.invoke("force-quit-with-downloads"),
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
   notifyReady: () => ipcRenderer.invoke("notify-ready"),
+  showAboutDialog: () => ipcRenderer.invoke("show-about-dialog"),
 
   // Chain logs
   onChainLog: (chainId, callback) => {
