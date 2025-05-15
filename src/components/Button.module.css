@@ -71,6 +71,48 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+.startBtn {
+  background: radial-gradient(circle at 0% 50%, #ff5e00 0%, #ffb800 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 184, 0, 0.15);
+  transition: background 0.25s, box-shadow 0.25s, color 0.25s;
+}
+
+.startBtn:hover {
+  background: radial-gradient(circle at 60% 40%, #ff9900 0%, #ffd700 100%);
+}
+
+:global(.dark) .startBtn {
+  background: radial-gradient(circle at 0% 50%, #ff7f00 0%, #ffd700 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 184, 0, 0.15);
+}
+
+:global(.dark) .startBtn:hover {
+  background: radial-gradient(circle at 0% 50%, #ff9900 0%, #ffd700 100%);
+}
+
+.downloadBtn {
+  background: radial-gradient(circle at 0% 50%, #ff5e00 0%, #ffb800 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 184, 0, 0.15);
+  transition: background 0.25s, box-shadow 0.25s, color 0.25s;
+}
+
+.downloadBtn:hover {
+  background: radial-gradient(circle at 60% 40%, #ff9900 0%, #ffd700 100%);
+}
+
+:global(.dark) .downloadBtn {
+  background: radial-gradient(circle at 0% 50%, #ff7f00 0%, #ffd700 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 184, 0, 0.15);
+}
+
+:global(.dark) .downloadBtn:hover {
+  background: radial-gradient(circle at 0% 50%, #ff9900 0%, #ffd700 100%);
+}
+
 .btn:disabled {
   cursor: wait;
   opacity: 0.5;
