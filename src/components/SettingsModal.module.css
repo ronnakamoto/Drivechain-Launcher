@@ -192,6 +192,24 @@ input:checked + .slider:before {
   transform: translateX(22px);
 }
 
+/* Disabled toggle styles */
+input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settingNote {
+  font-size: 0.75rem;
+  color: #8e8e93;
+  margin-left: 8px;
+  font-style: italic;
+}
+
 .updateSection {
   margin: 16px 0;
   padding: 0;

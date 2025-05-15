@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { hideSettingsModal } from '../store/settingsModalSlice';
 import { toggleShowQuotes } from '../store/settingsSlice';
 import { useTheme } from '../contexts/ThemeContext';
 import styles from './SettingsModal.module.css';
-import { X, Check, FolderOpen, RefreshCw, AlertTriangle } from 'lucide-react';
+import { X, FolderOpen, RefreshCw, AlertTriangle } from 'lucide-react';
 import ResetAllModal from './ResetAllModal';
 import UpdateStatusModal from './UpdateStatusModal';
 import WalletWarningModal from './WalletWarningModal';
@@ -43,7 +43,7 @@ const SettingsModal = ({ onResetComplete }) => {
         downloads.forEach(download => {
           const chain = config?.chains?.find(c => c.id === download.chainId);
           const chainName = chain ? chain.display_name : download.chainId;
-          
+
           if (download.status === "downloading") {
             setUpdateStatus('Downloading updates...');
             newProgress[chainName] = download.progress;
@@ -54,7 +54,7 @@ const SettingsModal = ({ onResetComplete }) => {
             newProgress[chainName] = 100;
           }
         });
-        
+
         // Update all progress bars at once
         setDownloadProgress(prev => ({
           ...prev,
@@ -80,14 +80,7 @@ const SettingsModal = ({ onResetComplete }) => {
       setIsUpdating(false);
     });
 
-    // Helper function to format bytes
-    const formatBytes = (bytes) => {
-      if (bytes === 0) return '0 B';
-      const k = 1024;
-      const sizes = ['B', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-    };
+    // Helper functions can be added here if needed
 
     return () => {
       removeStartedListener();
@@ -98,7 +91,7 @@ const SettingsModal = ({ onResetComplete }) => {
   }, [isUpdating]);
   const { isVisible } = useSelector((state) => state.settingsModal);
   const { showQuotes } = useSelector((state) => state.settings);
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme, useSystemTheme, toggleUseSystemTheme } = useTheme();
   const handleClose = () => {
     setShowResetModal(false);
     setShowWalletWarning(false);
@@ -125,7 +118,7 @@ const SettingsModal = ({ onResetComplete }) => {
     try {
       // Delete wallet starters directory first
       await window.electronAPI.invoke('delete-wallet-starters-dir');
-      
+
       // Recreate wallet starters directories
       await window.electronAPI.invoke('init-wallet-dirs');
 
@@ -176,20 +169,34 @@ const SettingsModal = ({ onResetComplete }) => {
           </div>
 
           <div className={styles.settingRow}>
-            <div className={styles.settingLabel}>Dark Mode</div>
-            <label className={styles.toggleSwitch} title="Toggle dark mode">
+            <div className={styles.settingLabel}>Use System Theme</div>
+            <label className={styles.toggleSwitch} title="Use system dark/light mode setting">
               <input
                 type="checkbox"
-                checked={isDarkMode}
-                onChange={toggleTheme}
+                checked={useSystemTheme}
+                onChange={toggleUseSystemTheme}
               />
               <span className={styles.slider}></span>
             </label>
           </div>
 
           <div className={styles.settingRow}>
+            <div className={styles.settingLabel}>Dark Mode</div>
+            <label className={styles.toggleSwitch} title={useSystemTheme ? "Enable 'Use System Theme' to control this setting" : "Toggle dark mode"}>
+              <input
+                type="checkbox"
+                checked={isDarkMode}
+                onChange={toggleTheme}
+                disabled={useSystemTheme}
+              />
+              <span className={`${styles.slider} ${useSystemTheme ? styles.disabled : ''}`}></span>
+            </label>
+            {useSystemTheme && <div className={styles.settingNote}>Controlled by system</div>}
+          </div>
+
+          <div className={styles.settingRow}>
             <div className={styles.settingLabel}>Master Wallet Directory</div>
-            <button 
+            <button
               className={styles.updateButton}
               onClick={async () => {
                 setShowWalletWarning(true);
@@ -203,7 +210,7 @@ const SettingsModal = ({ onResetComplete }) => {
 
           <div className={styles.settingRow}>
             <div className={styles.settingLabel}>Check for Updates</div>
-            <button 
+            <button
               className={styles.updateButton}
               onClick={async () => {
                 setIsCheckingUpdates(true);
@@ -213,7 +220,7 @@ const SettingsModal = ({ onResetComplete }) => {
                   if (!result.success) {
                     throw new Error(result.error);
                   }
-                  
+
                   const updates = result.updates;
                   if (updates.length === 0) {
                     const upToDateMessage = 'All chains are up to date';
