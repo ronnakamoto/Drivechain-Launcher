@@ -266,41 +266,55 @@
   width: 100%;
 }
 
-/* Icon container */
-.iconContainer {
-  width: 52px;
-  height: 52px;
-  background: linear-gradient(135deg, rgba(255, 195, 0, 0.1), rgba(214, 40, 40, 0.1));
-  border-radius: 50%;
+/* L2 badge styling */
+.chainTypeBadge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: -0.2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.devIcon {
-  width: 24px;
   height: 24px;
-  color: #D62828;
-  opacity: 0.9;
-  stroke-width: 1.5;
-  animation: slowRotate 20s linear infinite;
-}
-
-@keyframes slowRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-:global(.dark) .devIcon {
-  color: #FFC300;
-}
-
-:global(.dark) .iconContainer {
+  margin-right: 10px;
   background: linear-gradient(135deg, rgba(255, 195, 0, 0.15), rgba(214, 40, 40, 0.15));
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFC300;
+  border: 1px solid rgba(255, 195, 0, 0.3);
+}
+
+.chainTypeBadge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+  transform: rotate(45deg);
+  z-index: -1;
+  transition: all 0.6s ease;
+  opacity: 0;
+}
+
+.card:hover .chainTypeBadge::before {
+  opacity: 1;
+  transform: rotate(45deg) translateY(-10%);
+}
+
+:global(.dark) .chainTypeBadge {
+  background: linear-gradient(135deg, rgba(255, 195, 0, 0.25), rgba(214, 40, 40, 0.25));
+  color: #D62828;
+  border: 1px solid rgba(214, 40, 40, 0.3);
+  font-weight: 700;
 }
 
 /* Title styling */

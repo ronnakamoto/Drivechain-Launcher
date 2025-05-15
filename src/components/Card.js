@@ -297,7 +297,10 @@ const Card = ({
 
         <div className={styles.titleSection}>
           <div className={styles.titleRow}>
-            <h2 className={styles.title}>{chain.display_name}</h2>
+            <h2 className={styles.title}>
+              {chain.display_name}
+              <span className={styles.titleUnderline}></span>
+            </h2>
             <div className="status-group">
               <div className={`status-light ${processHealth}`} title={`Process Status: ${processHealth}`} />
               <div className="status-text">
