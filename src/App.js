@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { loadSettings } from './store/settingsSlice';
 import './App.css';
 import './scrollbar.css';
 import NavBar from './components/NavBar';
@@ -52,12 +53,16 @@ function AppContent() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Load settings from the store
+        dispatch(loadSettings());
+
+        // Check if master wallet exists
         const result = await window.electronAPI.getMasterWallet();
         if (!result.success || !result.data) {
           setShowWelcomeModal(true);
         }
       } catch (error) {
-        console.error('Error checking master wallet:', error);
+        console.error('Error during app initialization:', error);
         setShowWelcomeModal(true);
       } finally {
         setIsInitialized(true);
@@ -85,7 +90,7 @@ function AppContent() {
         </Routes>
         <FaucetModal />
         <SettingsModal onResetComplete={() => setShowWelcomeModal(true)} />
-        <WelcomeModal 
+        <WelcomeModal
           isOpen={showWelcomeModal}
           onClose={() => setShowWelcomeModal(false)}
         />

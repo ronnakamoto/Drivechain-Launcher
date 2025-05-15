@@ -18,6 +18,7 @@ const DownloadManager = require("./modules/downloadManager");
 const ApiManager = require("./modules/apiManager");
 const DirectoryManager = require("./modules/directoryManager");
 const UpdateManager = require("./modules/updateManager");
+const SettingsStore = require("./modules/settingsStore");
 const { createMenu } = require("./menu");
 
 const configPath = path.join(__dirname, "chain_config.json");
@@ -31,6 +32,7 @@ let apiManager;
 let updateManager;
 let walletManager;
 let fastWithdrawalManager;
+let settingsStore;
 
 async function loadConfig() {
   try {
@@ -681,6 +683,45 @@ function setupIPCHandlers() {
     forceKillAllProcesses();
   });
 
+  // Settings handlers
+  ipcMain.handle("get-theme-settings", async () => {
+    try {
+      return await settingsStore.getThemeSettings();
+    } catch (error) {
+      console.error('Error getting theme settings:', error);
+      return { isDarkMode: false, useSystemTheme: false };
+    }
+  });
+
+  ipcMain.handle("save-theme-settings", async (event, settings) => {
+    try {
+      await settingsStore.saveThemeSettings(settings);
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving theme settings:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle("get-ui-settings", async () => {
+    try {
+      return await settingsStore.getUISettings();
+    } catch (error) {
+      console.error('Error getting UI settings:', error);
+      return { showQuotes: true };
+    }
+  });
+
+  ipcMain.handle("save-ui-settings", async (event, settings) => {
+    try {
+      await settingsStore.saveUISettings(settings);
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving UI settings:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
   // Add handler for force quit with active downloads
   ipcMain.handle('force-quit-with-downloads', async () => {
     try {
@@ -828,6 +869,7 @@ async function initialize() {
     walletManager = new WalletManager(config);
     fastWithdrawalManager = new FastWithdrawalManager();
     apiManager = new ApiManager();
+    settingsStore = SettingsStore();
 
     // Create window first
     createWindow();

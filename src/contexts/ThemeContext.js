@@ -11,17 +11,39 @@ export const ThemeProvider = ({ children }) => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   }, []);
 
-  // Initialize theme based on localStorage or system preference
+  // Initialize theme based on settings store or system preference
   useEffect(() => {
-    const savedUseSystemTheme = localStorage.getItem('useSystemTheme');
-    const savedTheme = localStorage.getItem('theme');
+    const loadThemeSettings = async () => {
+      try {
+        // Try to load from settings store first
+        const themeSettings = await window.electronAPI.getThemeSettings();
 
-    if (savedUseSystemTheme === 'true') {
-      setUseSystemTheme(true);
-      setIsDarkMode(detectSystemTheme());
-    } else if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-    }
+        if (themeSettings) {
+          if (themeSettings.useSystemTheme) {
+            setUseSystemTheme(true);
+            setIsDarkMode(detectSystemTheme());
+          } else {
+            setIsDarkMode(themeSettings.isDarkMode);
+          }
+          return;
+        }
+
+        // Fall back to localStorage for backward compatibility
+        const savedUseSystemTheme = localStorage.getItem('useSystemTheme');
+        const savedTheme = localStorage.getItem('theme');
+
+        if (savedUseSystemTheme === 'true') {
+          setUseSystemTheme(true);
+          setIsDarkMode(detectSystemTheme());
+        } else if (savedTheme === 'dark') {
+          setIsDarkMode(true);
+        }
+      } catch (error) {
+        console.error('Error loading theme settings:', error);
+      }
+    };
+
+    loadThemeSettings();
   }, [detectSystemTheme]);
 
   // Listen for system theme changes
@@ -48,6 +70,14 @@ export const ThemeProvider = ({ children }) => {
 
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
+
+    // Save to settings store
+    window.electronAPI.saveThemeSettings({
+      isDarkMode: newTheme,
+      useSystemTheme: false
+    });
+
+    // Also save to localStorage for backward compatibility
     localStorage.setItem('theme', newTheme ? 'dark' : 'light');
   };
 
@@ -55,17 +85,33 @@ export const ThemeProvider = ({ children }) => {
   const toggleUseSystemTheme = () => {
     const newUseSystemTheme = !useSystemTheme;
     setUseSystemTheme(newUseSystemTheme);
-    localStorage.setItem('useSystemTheme', newUseSystemTheme.toString());
 
+    // Update system theme state
     if (newUseSystemTheme) {
       // If enabling system theme, immediately apply system preference
       const systemIsDark = detectSystemTheme();
       setIsDarkMode(systemIsDark);
+
+      // Save to settings store
+      window.electronAPI.saveThemeSettings({
+        isDarkMode: systemIsDark,
+        useSystemTheme: true
+      });
     } else {
       // If disabling system theme, revert to saved theme or default to light
       const savedTheme = localStorage.getItem('theme');
-      setIsDarkMode(savedTheme === 'dark');
+      const newIsDarkMode = savedTheme === 'dark';
+      setIsDarkMode(newIsDarkMode);
+
+      // Save to settings store
+      window.electronAPI.saveThemeSettings({
+        isDarkMode: newIsDarkMode,
+        useSystemTheme: false
+      });
     }
+
+    // Also save to localStorage for backward compatibility
+    localStorage.setItem('useSystemTheme', newUseSystemTheme.toString());
   };
 
   return (

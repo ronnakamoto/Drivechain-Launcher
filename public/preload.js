@@ -86,7 +86,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener("bitcoin-sync-started", subscription);
     };
   },
-  
+
   // About modal event
   onShowAboutModal: (callback) => {
     const subscription = (event) => callback();
@@ -96,22 +96,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
     };
   },
   waitForChain: (chainId) => ipcRenderer.invoke("wait-for-chain", chainId),
-  
+
   // Wallet Methods
   createMasterWallet: (options) => ipcRenderer.invoke("create-master-wallet", options),
-  importMasterWallet: (mnemonic, passphrase) => 
+  importMasterWallet: (mnemonic, passphrase) =>
     ipcRenderer.invoke("import-master-wallet", { mnemonic, passphrase }),
   getMasterWallet: () => ipcRenderer.invoke("get-master-wallet"),
   deleteMasterWallet: () => ipcRenderer.invoke("delete-master-wallet"),
   deriveChainWallet: (chainId) => ipcRenderer.invoke("derive-chain-wallet", chainId),
   getChainWallet: (chainId) => ipcRenderer.invoke("get-chain-wallet", chainId),
   getWalletStarter: (type) => ipcRenderer.invoke("get-wallet-starter", type),
-  
+
   // Advanced Wallet Methods
   previewWallet: (options) => ipcRenderer.invoke("preview-wallet", options),
   createAdvancedWallet: (options) => ipcRenderer.invoke("create-advanced-wallet", options),
   generateRandomEntropy: () => ipcRenderer.invoke("generate-random-entropy"),
-  
+
   // Wallet Events
   onWalletUpdate: (callback) => {
     const subscription = (event, data) => callback(data);
@@ -123,7 +123,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Fast withdrawal methods
   getBalanceBTC: () => ipcRenderer.invoke("get-balance-btc"),
-  requestWithdrawal: (destination, amount, layer2Chain) => 
+  requestWithdrawal: (destination, amount, layer2Chain) =>
     ipcRenderer.invoke("request-withdrawal", destination, amount, layer2Chain),
   notifyPaymentComplete: (hash, txid) =>
     ipcRenderer.invoke("notify-payment-complete", hash, txid),
@@ -148,6 +148,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
   notifyReady: () => ipcRenderer.invoke("notify-ready"),
   showAboutDialog: () => ipcRenderer.invoke("show-about-dialog"),
+
+  // Settings
+  getThemeSettings: () => ipcRenderer.invoke("get-theme-settings"),
+  saveThemeSettings: (settings) => ipcRenderer.invoke("save-theme-settings", settings),
+  getUISettings: () => ipcRenderer.invoke("get-ui-settings"),
+  saveUISettings: (settings) => ipcRenderer.invoke("save-ui-settings", settings),
 
   // Chain logs
   onChainLog: (chainId, callback) => {
