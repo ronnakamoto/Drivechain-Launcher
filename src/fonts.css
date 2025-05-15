@@ -1,0 +1,16 @@
+/* Space Grotesk Font Integration */
+:root {
+  --font-primary: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Apply Space Grotesk to all elements by default */
+* {
+  font-family: var(--font-primary);
+}
+
+/* Preserve monospace for code elements */
+code, pre, .monospace {
+  font-family: var(--font-mono);
+}

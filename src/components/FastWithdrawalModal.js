@@ -171,28 +171,32 @@ const FastWithdrawalModal = () => {
                       <label htmlFor="server" className={styles.inputLabel}>
                         Fast Withdrawal Server
                       </label>
-                      <select
-                        id="server"
-                        value={selectedServer}
-                        onChange={(e) => setSelectedServer(e.target.value)}
-                        className={styles.input}
-                      >
-                        <option value="localhost">172.105.148.135 (L2L #1)</option>
-                      </select>
+                      <div className={styles.inputWithPaste}>
+                        <select
+                          id="server"
+                          value={selectedServer}
+                          onChange={(e) => setSelectedServer(e.target.value)}
+                          className={styles.input}
+                        >
+                          <option value="localhost">172.105.148.135 (L2L #1)</option>
+                        </select>
+                      </div>
                     </div>
                     <div className={styles.inputGroup}>
                       <label htmlFor="chain" className={styles.inputLabel}>
                         Sidechain to Withdraw From
                       </label>
-                      <select
-                        id="chain"
-                        value={layer2Chain}
-                        onChange={(e) => setLayer2Chain(e.target.value)}
-                        className={styles.input}
-                      >
-                        <option value="Thunder">Thunder</option>
-                        <option value="BitNames">BitNames</option>
-                      </select>
+                      <div className={styles.inputWithPaste}>
+                        <select
+                          id="chain"
+                          value={layer2Chain}
+                          onChange={(e) => setLayer2Chain(e.target.value)}
+                          className={styles.input}
+                        >
+                          <option value="Thunder">Thunder</option>
+                          <option value="BitNames">BitNames</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                   
