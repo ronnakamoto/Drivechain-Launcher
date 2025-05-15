@@ -4,7 +4,7 @@ import { hideSettingsModal } from '../store/settingsModalSlice';
 import { toggleShowQuotes } from '../store/settingsSlice';
 import { useTheme } from '../contexts/ThemeContext';
 import styles from './SettingsModal.module.css';
-import { X } from 'lucide-react';
+import { X, Check, FolderOpen, RefreshCw, AlertTriangle } from 'lucide-react';
 import ResetAllModal from './ResetAllModal';
 import UpdateStatusModal from './UpdateStatusModal';
 import WalletWarningModal from './WalletWarningModal';
@@ -153,22 +153,19 @@ const SettingsModal = ({ onResetComplete }) => {
   if (!isVisible) return null;
 
   return (
-    <div 
-      className={`${styles.modalOverlay} ${isDarkMode ? styles.dark : styles.light}`} 
-      onClick={handleOverlayClick}
-    >
-      <div className={styles.modalContent}>
+    <div className={styles.modalOverlay} onClick={handleOverlayClick}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>Settings</h2>
-          <button className={styles.closeButton} onClick={handleClose}>
-            <X size={20} />
+          <button className={styles.closeButton} onClick={handleClose} aria-label="Close settings">
+            <X size={20} strokeWidth={2.5} />
           </button>
         </div>
 
         <div className={styles.settingGroup}>
           <div className={styles.settingRow}>
-            <span className={styles.settingLabel}>Show Quotes</span>
-            <label className={styles.toggleSwitch}>
+            <div className={styles.settingLabel}>Show Quotes</div>
+            <label className={styles.toggleSwitch} title="Toggle showing quotes">
               <input
                 type="checkbox"
                 checked={showQuotes}
@@ -179,8 +176,8 @@ const SettingsModal = ({ onResetComplete }) => {
           </div>
 
           <div className={styles.settingRow}>
-            <span className={styles.settingLabel}>Dark Mode</span>
-            <label className={styles.toggleSwitch}>
+            <div className={styles.settingLabel}>Dark Mode</div>
+            <label className={styles.toggleSwitch} title="Toggle dark mode">
               <input
                 type="checkbox"
                 checked={isDarkMode}
@@ -191,45 +188,40 @@ const SettingsModal = ({ onResetComplete }) => {
           </div>
 
           <div className={styles.settingRow}>
-            <span className={styles.settingLabel}>Master Wallet Directory</span>
+            <div className={styles.settingLabel}>Master Wallet Directory</div>
             <button 
               className={styles.updateButton}
-              onClick={() => setShowWalletWarning(true)}
+              onClick={async () => {
+                setShowWalletWarning(true);
+              }}
+              title="Open wallet directory"
             >
+              <FolderOpen size={16} style={{ marginRight: '6px' }} />
               Open
             </button>
           </div>
 
           <div className={styles.settingRow}>
-            <span className={styles.settingLabel}>Check for Updates</span>
+            <div className={styles.settingLabel}>Check for Updates</div>
             <button 
               className={styles.updateButton}
               onClick={async () => {
+                setIsCheckingUpdates(true);
+                setShowUpdateStatus(true);
                 try {
-                  setIsCheckingUpdates(true);
-                  setDownloadProgress({});  // Reset progress when checking starts
-                  setAvailableUpdates([]); // Clear available updates before checking
-                  const checkingMessage = 'Checking for updates...';
-                  window.electronAPI.sendMessage('toMain', { type: 'update-status', message: checkingMessage });
-                  setUpdateStatus(checkingMessage);
-                  setShowUpdateStatus(true);
                   const result = await window.electronAPI.invoke('check-for-updates');
-                  
                   if (!result.success) {
                     throw new Error(result.error);
                   }
-
-                  const updates = Object.entries(result.updates)
-                    .filter(([_, update]) => update.has_update)
-                    .map(([id, update]) => update.displayName);
-
+                  
+                  const updates = result.updates;
                   if (updates.length === 0) {
                     const upToDateMessage = 'All chains are up to date';
                     window.electronAPI.sendMessage('toMain', { type: 'update-status', message: upToDateMessage });
                     setUpdateStatus(upToDateMessage);
                     setAvailableUpdates([]);
                   } else {
-                    const availableMessage = `Updates available for: ${updates.join(', ')}`;
+                    const availableMessage = `Updates available for: ${updates.map(update => update.displayName).join(', ')}`;
                     window.electronAPI.sendMessage('toMain', { type: 'update-status', message: availableMessage });
                     setUpdateStatus(availableMessage);
                     setAvailableUpdates(updates);
@@ -243,14 +235,17 @@ const SettingsModal = ({ onResetComplete }) => {
                 }
               }}
               disabled={isCheckingUpdates}
+              title="Check for available updates"
             >
+              <RefreshCw size={16} style={{ marginRight: '6px' }} className={isCheckingUpdates ? styles.spinningIcon : ''} />
               {isCheckingUpdates ? 'Checking...' : 'Check Now'}
             </button>
           </div>
         </div>
 
         <div className={styles.buttonContainer}>
-          <button className={styles.resetButton} onClick={handleReset}>
+          <button className={styles.resetButton} onClick={handleReset} title="Reset all settings and data">
+            <AlertTriangle size={16} style={{ marginRight: '6px' }} />
             Reset Everything
           </button>
         </div>
