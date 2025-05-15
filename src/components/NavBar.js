@@ -7,6 +7,7 @@ import { ReactComponent as ChainIcon } from '../assets/icons/chain-icon.svg';
 import { ReactComponent as WalletIcon } from '../assets/icons/wallet-icon.svg';
 import { ReactComponent as WithdrawalIcon } from '../assets/icons/withdrawal-icon.svg';
 import { ReactComponent as SettingsIcon } from '../assets/icons/settings-icon.svg';
+import driechainLogo from '../assets/images/drivechain-logo.png';
 
 const NavBar = () => {
   const dispatch = useDispatch();
@@ -14,7 +15,8 @@ const NavBar = () => {
   return (
     <nav className={styles.nav}>
       <div className={styles.logo}>
-        <span className={styles.logoText}>Drivechain</span>
+        <img src={driechainLogo} alt="Drivechain Logo" className={styles.logoImage} />
+        <span className={styles.logoText}>Drivechain Launcher</span>
       </div>
       
       <div className={styles.navLinks}>

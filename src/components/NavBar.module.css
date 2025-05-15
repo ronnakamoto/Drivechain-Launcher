@@ -20,6 +20,13 @@
   display: flex;
   align-items: center;
   padding-left: 20px;
+  gap: 8px;
+}
+
+.logoImage {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .logoText {
